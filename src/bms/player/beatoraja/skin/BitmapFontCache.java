@@ -3,6 +3,7 @@ package bms.player.beatoraja.skin;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
+
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.utils.Array;
@@ -18,6 +19,7 @@ public class BitmapFontCache {
         public int type;
         public float pageWidth;
         public float pageHeight;
+        public Map<Integer, BitmapFont.Glyph> supplementaryGlyphs;
     }
 
     static public boolean Has(Path path) {

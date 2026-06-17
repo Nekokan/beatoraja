@@ -647,7 +647,11 @@ public abstract class JsonSkinObjectLoader<S extends Skin> {
 					}
 					skinText = new SkinTextBitmap(loader.bitmapSourceMap.get(font.id), text.size * ((float)loader.dstr.width / loader.sk.w), property);
 				} else {
-					skinText = new SkinTextFont(path.toString(), 0, text.size, 0, property);
+					String[] fallbackPaths = new String[font.fallback.length];
+					for (int i = 0; i < font.fallback.length; i++) {
+						fallbackPaths[i] = skinPath.getParent().resolve(font.fallback[i]).toString();
+					}
+					skinText = new SkinTextFont(path.toString(), fallbackPaths, 0, text.size, 0, property);
 				}
 				skinText.setConstantText(text.constantText);
 				skinText.setAlign(text.align);
