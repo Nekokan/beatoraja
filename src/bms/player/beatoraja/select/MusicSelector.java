@@ -9,10 +9,8 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.*;
 
-import bms.model.Mode;
 import bms.player.beatoraja.*;
 import bms.player.beatoraja.Config.SongPreview;
 import bms.player.beatoraja.ScoreDatabaseAccessor.ScoreDataCollector;
@@ -42,7 +40,7 @@ public final class MusicSelector extends MainState {
 	 */
 	private SongDatabaseAccessor songdb;
 
-	public static final Mode[] MODE = { null, Mode.BEAT_7K, Mode.BEAT_14K, Mode.POPN_9K, Mode.BEAT_5K, Mode.BEAT_10K, Mode.KEYBOARD_24K, Mode.KEYBOARD_24K_DOUBLE };
+	public static final ModeFilter[] MODE = ModeFilter.values();
 
 	/**
 	 * 保存可能な最大リプレイ数
@@ -64,8 +62,6 @@ public final class MusicSelector extends MainState {
 	private final BarManager manager = new BarManager(this);
 	
 	private MusicSelectInputProcessor musicinput;
-
-	private SearchTextField search;
 
 	/**
 	 * 楽曲が選択されてからbmsを読み込むまでの時間(ms)
@@ -185,17 +181,6 @@ public final class MusicSelector extends MainState {
 		manager.updateBar();
 
 		loadSkin(SkinType.MUSIC_SELECT);
-
-		// search text field
-		Rectangle searchRegion = ((MusicSelectSkin) getSkin()).getSearchTextRegion();
-		if (searchRegion != null && (getStage() == null ||
-				(search != null && !searchRegion.equals(search.getSearchBounds())))) {
-			if(search != null) {
-				search.dispose();
-			}
-			search = new SearchTextField(this, resource.getConfig().getResolution());
-			setStage(search);
-		}
 	}
 
 	public void prepare() {
@@ -318,11 +303,20 @@ public final class MusicSelector extends MainState {
 
 	public void shutdown() {
 		preview.stop();
-		if (search != null) {
-			search.unfocus(this);
-		}
 		banners.disposeOld();
 		stagefiles.disposeOld();
+	}
+
+	public void search(String text) {
+		if (text == null || text.isBlank()) {
+			return;
+		}
+		SearchWordBar swb = new SearchWordBar(this, text);
+		if (swb.getChildren().length > 0) {
+			manager.addSearch(swb);
+			manager.updateBar(null);
+			manager.setSelected(swb);
+		}
 	}
 	
 	public void select(Bar current) {
@@ -549,10 +543,6 @@ public final class MusicSelector extends MainState {
 		bar.dispose();
 		banners.dispose();
 		stagefiles.dispose();
-		if (search != null) {
-			search.dispose();
-			search = null;
-		}
 	}
 
 	public int getPanelState() {

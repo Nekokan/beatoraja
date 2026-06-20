@@ -33,6 +33,15 @@ public class LuaSkinLoader extends JSONSkinLoader {
 		super(new SkinLuaAccessor(false));
 	}
 
+	public LuaSkinLoader(Path sandboxRoot) {
+		super(new SkinLuaAccessor(false, sandboxRoot));
+	}
+
+	public static LuaSkinLoader sandboxed(Path skinPath) {
+		Path skinRoot = skinPath.toAbsolutePath().normalize().getParent();
+		return new LuaSkinLoader(skinRoot != null ? skinRoot : Path.of("").toAbsolutePath().normalize());
+	}
+
 	public LuaSkinLoader(MainState state, Config c) {
 		super(state, c, new SkinLuaAccessor(false));
 	}
@@ -106,6 +115,8 @@ public class LuaSkinLoader extends JSONSkinLoader {
 					serializeLuaScript(lv, lua::loadTimerProperty, lua::loadTimerProperty, TimerPropertyFactory::getTimerProperty));
 			put(FloatWriter.class, lv ->
 					serializeLuaScript(lv, lua::loadFloatWriter, lua::loadFloatWriter, FloatPropertyFactory::getRateWriter));
+			put(StringWriter.class, lv ->
+					serializeLuaScript(lv, lua::loadStringWriter, lua::loadStringWriter, null));
 			put(Event.class, lv ->
 					serializeLuaScript(lv, lua::loadEvent, lua::loadEvent, EventFactory::getEvent));
 		}
