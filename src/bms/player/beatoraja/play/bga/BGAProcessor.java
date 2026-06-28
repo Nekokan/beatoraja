@@ -41,10 +41,12 @@ public class BGAProcessor {
 	 * 再生中のBGAID
 	 */
 	private int playingbgaid = -1;
+	private long playingbgastarttime;
 	/**
 	 * 再生中のレイヤーID
 	 */
 	private int playinglayerid = -1;
+	private long playinglayerstarttime;
 	/**
 	 * ミスレイヤー表示開始時間
 	 */
@@ -234,12 +236,14 @@ public class BGAProcessor {
 			}
 		}
 		resetCurrentlyPlayingBGA();
-		time = 0;		
+		time = Long.MIN_VALUE;
 	}
 
 	private void resetCurrentlyPlayingBGA() {
 		playingbgaid = -1;
+		playingbgastarttime = 0;
 		playinglayerid = -1;
+		playinglayerstarttime = 0;
 		misslayertime = 0;
 		misslayer = null;
 	}
@@ -273,18 +277,22 @@ public class BGAProcessor {
 				final int bga = tl.getBGA();
 				if (bga == -2) {
 					playingbgaid = -1;
+					playingbgastarttime = 0;
 					rbga = false;
 				} else if (bga >= 0) {
 					playingbgaid = bga;
+					playingbgastarttime = tl.getTime();
 					rbga = false;
 				}
 				
 				final int layer = tl.getLayer();
 				if (layer == -2) {
 					playinglayerid = -1;
+					playinglayerstarttime = 0;
 					rlayer = false;
 				} else if (layer >= 0) {
 					playinglayerid = layer;
+					playinglayerstarttime = tl.getTime();
 					rlayer = false;
 				}
 
@@ -325,7 +333,7 @@ public class BGAProcessor {
 			}
 		} else {
 			// draw BGA
-			final Texture playingbgatex = getBGAData(time, playingbgaid, rbga);
+			final Texture playingbgatex = getBGAData(Math.max(time - playingbgastarttime, 0), playingbgaid, rbga);
 			rbga = true;
 			if (playingbgatex != null) {
 				if (movies[playingbgaid] != null) {
@@ -339,7 +347,7 @@ public class BGAProcessor {
 				sprite.draw(blanktex, r.x, r.y, r.width, r.height);
 			}
 			// draw layer
-			final Texture playinglayertex = getBGAData(time, playinglayerid, rlayer);
+			final Texture playinglayertex = getBGAData(Math.max(time - playinglayerstarttime, 0), playinglayerid, rlayer);
 			rlayer = true;
 			if (playinglayertex != null) {
 				if (movies[playinglayerid] != null) {
