@@ -196,6 +196,12 @@ public class BMSPlayer extends MainState {
 		}
 		// 通常プレイの場合は最後のノーツ、オートプレイの場合はBG/BGAを含めた最後のノーツ
 		playtime = (autoplay.mode == BMSPlayerMode.Mode.AUTOPLAY ? model.getLastTime() : model.getLastNoteTime()) + TIME_MARGIN;
+		
+		if (autoplay.mode == BMSPlayerMode.Mode.AUTOPLAY && autoplay.startMeasure >= 0 && autoplay.startMeasure <= 999) {
+			starttimeoffset = getMeasureStartTime(model, autoplay.startMeasure);
+			score = false;
+			Logger.getGlobal().info("AUTOPLAY start measure : " + autoplay.startMeasure + ", start time(ms) : " + starttimeoffset);
+		}
 
 		if (autoplay.mode == BMSPlayerMode.Mode.PLAY || autoplay.mode == BMSPlayerMode.Mode.AUTOPLAY) {
 			if (config.isBpmguide() && (model.getMinBPM() < model.getMaxBPM())) {
@@ -365,6 +371,24 @@ public class BMSPlayer extends MainState {
 		final int difficulty = resource.getSongdata() != null ? resource.getSongdata().getDifficulty() : 0;
 		resource.getSongdata().setBMSModel(model);
 		resource.getSongdata().setDifficulty(difficulty);
+	}
+
+	private long getMeasureStartTime(BMSModel model, int startMeasure) {
+		if (startMeasure <= 0) {
+			return 0;
+		}
+		int measure = 0;
+		TimeLine last = null;
+		for (TimeLine tl : model.getAllTimeLines()) {
+			if (tl.getSectionLine()) {
+				if (measure == startMeasure) {
+					return tl.getMilliTime();
+				}
+				measure++;
+			}
+			last = tl;
+		}
+		return last != null ? last.getMilliTime() : 0;
 	}
 
 	public SkinType getSkinType() {

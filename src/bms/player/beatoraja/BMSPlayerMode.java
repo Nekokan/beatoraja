@@ -22,14 +22,20 @@ public class BMSPlayerMode {
 	 */
 	public final Mode mode;
 	public final int id;
+	public final int startMeasure;
 	
 	public BMSPlayerMode(Mode mode) {
 		this(mode, 0);
 	}
 	
 	public BMSPlayerMode(Mode mode, int id) {
+		this(mode, id, -1);
+	}
+
+	public BMSPlayerMode(Mode mode, int id, int startMeasure) {
 		this.mode = mode;
 		this.id = id;
+		this.startMeasure = startMeasure;
 	}
 	
 	public static BMSPlayerMode getReplayMode(int index) {

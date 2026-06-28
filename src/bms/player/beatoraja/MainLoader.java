@@ -64,7 +64,8 @@ public class MainLoader extends Application {
 		}
 
 		BMSPlayerMode auto = null;
-		for (String s : args) {
+		for (int i = 0; i < args.length; i++) {
+			String s = args[i];
 			if (s.startsWith("-")) {
 				if (s.equals("-a")) {
 					auto = BMSPlayerMode.AUTOPLAY;
@@ -86,6 +87,20 @@ public class MainLoader extends Application {
 				}
 				if (s.equals("-s")) {
 					auto = BMSPlayerMode.PLAY;
+				}
+				if (s.equals("-m")) {
+					try {
+						int startMeasure = Integer.parseInt(args[++i]);
+						if (startMeasure < 0) {
+							throw new NumberFormatException("measure must be non-negative");
+						} else if (startMeasure > 999) {
+							throw new NumberFormatException("measure must be less than 1000");
+						}
+						auto = new BMSPlayerMode(BMSPlayerMode.Mode.AUTOPLAY, 0, startMeasure);
+					} catch (ArrayIndexOutOfBoundsException | NumberFormatException e) {
+						logger.severe("Invalid -m option. Usage: beatoraja.jar -m {measure} {bmsfile}");
+						System.exit(1);
+					}
 				}
 			} else {
 				bmsPath = Paths.get(s);
