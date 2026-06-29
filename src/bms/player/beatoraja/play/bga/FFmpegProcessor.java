@@ -184,7 +184,7 @@ public class FFmpegProcessor implements MovieProcessor {
 						if (frame == null) {
 							eof = true;
 							if (loop) {
-								commands.offerLast(Command.LOOP);
+								commands.offerLast(Command.REWIND_LOOP);
 							}
 						} else if (frame.image != null && frame.image[0] != null) {
 							try {
@@ -236,11 +236,15 @@ public class FFmpegProcessor implements MovieProcessor {
 						switch (commands.pollFirst()) {
 							case PLAY -> {
 								loop = false;
-								restart();
+								restart(false);
 							}
 							case LOOP -> {
 								loop = true;
-								restart();
+								restart(false);
+							}
+							case REWIND_LOOP -> {
+								loop = true;
+								restart(true);
 							}
 							case STOP -> eof = true;
 							case HALT -> halt = true;
@@ -266,13 +270,17 @@ public class FFmpegProcessor implements MovieProcessor {
 			}
 		}
 		
-		private void restart() throws Exception {
+		private void restart(boolean rewind) throws Exception {
 			if (processorStatus != ProcessorStatus.DISPOSED) {
 				processorStatus = ProcessorStatus.TEXTURE_INACTIVE;
 			}
-			final long seektime = Math.max(offset + time * 1000, 0);
+			final long playtime = rewind ? 0 : time;
+			final long seektime = Math.max(offset + playtime * 1000, 0);
 			try {
 				grabber.setTimestamp(seektime);
+				if (rewind) {
+					offset = grabber.getTimestamp() - time * 1000;
+				}
 			} catch (Throwable seekFailure) {
 				if (setVideoFrameNumber != null) {
 					try {
@@ -285,7 +293,7 @@ public class FFmpegProcessor implements MovieProcessor {
 					grabber.restart();
 					grabber.grabImage();
 				}
-				offset = grabber.getTimestamp() - time * 1000;
+				offset = grabber.getTimestamp() - (rewind ? time : playtime) * 1000;
 			}
 			eof = false;
 			framecount = 0;
@@ -340,7 +348,7 @@ public class FFmpegProcessor implements MovieProcessor {
 	}
 
 	enum Command {
-		PLAY, LOOP, STOP, HALT;
+		PLAY, LOOP, REWIND_LOOP, STOP, HALT;
 	}
 	
 	public interface TimerObserver {

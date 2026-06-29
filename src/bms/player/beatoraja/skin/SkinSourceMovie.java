@@ -21,6 +21,7 @@ public class SkinSourceMovie extends SkinSource {
 	private FFmpegProcessor image;
 	
 	private boolean playing;
+	private long starttime;
 
 	private final int timer;
 	
@@ -34,6 +35,7 @@ public class SkinSourceMovie extends SkinSource {
 		image = new FFmpegProcessor(1);
 		image.create(s);
 		this.timer = timer;
+		starttime = Long.MIN_VALUE;
 	}
 
 	public boolean validate() {
@@ -42,10 +44,12 @@ public class SkinSourceMovie extends SkinSource {
 	
 	public TextureRegion getImage(long time, MainState state) {
 		if(!playing) {
-			image.play(time, true);
+			starttime = time;
+			image.play(0, true);
 			playing = true;
 		}
-		Texture tex = image.getFrame(time);
+		final long movietime = Math.max(time - starttime, 0);
+		Texture tex = image.getFrame(movietime);
 		if(tex != null) {
 			region.setTexture(tex);
 			region.setRegion(tex);
