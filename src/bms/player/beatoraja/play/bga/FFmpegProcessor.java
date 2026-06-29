@@ -267,20 +267,28 @@ public class FFmpegProcessor implements MovieProcessor {
 		}
 		
 		private void restart() throws Exception {
-			if (setVideoFrameNumber != null) {
-				try {
-					setVideoFrameNumber.invoke(grabber, 0);
-				} catch (IllegalAccessException | InvocationTargetException e) {
+			if (processorStatus != ProcessorStatus.DISPOSED) {
+				processorStatus = ProcessorStatus.TEXTURE_INACTIVE;
+			}
+			final long seektime = Math.max(offset + time * 1000, 0);
+			try {
+				grabber.setTimestamp(seektime);
+			} catch (Throwable seekFailure) {
+				if (setVideoFrameNumber != null) {
+					try {
+						setVideoFrameNumber.invoke(grabber, 0);
+					} catch (IllegalAccessException | InvocationTargetException e) {
+						grabber.restart();
+						grabber.grabImage();
+					}
+				} else {
 					grabber.restart();
 					grabber.grabImage();
 				}
-			} else {
-				grabber.restart();
-				grabber.grabImage();
+				offset = grabber.getTimestamp() - time * 1000;
 			}
 			eof = false;
-			offset = grabber.getTimestamp() - time * 1000;
-			framecount = 1;
+			framecount = 0;
 			// System.out.println("movie restart - starttime : " + start);
 		}
 
